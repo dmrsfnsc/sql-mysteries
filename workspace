@@ -1,0 +1,76 @@
+--Review structure of data 
+SELECT sql 
+  FROM sqlite_master
+ where name = 'crime_scene_report';
+
+--Revieiwing the people in the set
+SELECT count(*)
+FROM person;
+
+SELECT * FROM person LIMIT 10;
+
+--Reviewing database structure
+SELECT DISTINCT type FROM crime_scene_report;
+
+--Getting specific crime scene report information on SQL City
+SELECT * from crime_scene_report
+WHERE city = 'SQL City'
+AND type = 'murder';
+
+--Pulling the first witnesses from the description who lives at the last house on Northwestern Dr
+SELECT * FROM person
+WHERE address_street_name = 'Northwestern Dr'
+ORDER BY address_number DESC LIMIT 1;
+-- First witness is Morty Schapiro at 4919 Northwesrern Dr
+
+--Pulling the second witness named Annabel who lives on Franklin Ave
+SELECT * FROM person 
+WHERE address_street_name = 'Franklin Ave'
+AND name LIKE 'An%'
+--Second witness is Annabel Miller at 103 Franklin Ave 
+
+-- Finding the interview transcripts of the 2 witnesses
+SELECT person.name, interview.transcript
+FROM person 
+JOIN interview  
+ON person.id = interview.person_id
+WHERE person.id = 14887 OR person.id = 16371
+-- Morty: Was a man, Get Fit Now gym bag, Membership id starts with 48Z (gold member). License plate = H42W
+-- Annabel: Was at the gym on January 9
+
+--Narrowing down who the killer is 
+SELECT chkin.check_in_date, p.name, chkin.membership_id, m.membership_status, dl.plate_number
+FROM get_fit_now_check_in chkin
+JOIN get_fit_now_member m
+ON chkin.membership_id = m.id
+JOIN person p
+ON m.person_id = p.id
+JOIN drivers_license dl
+ON p.license_id = dl.id
+WHERE membership_id LIKE '48Z%'
+AND check_in_date = 20180109
+AND plate_number LIKE '%H42W%'
+-- Jeremy Bowers is the murderer
+
+--Let's look at his interview transcript
+SELECT person.name, interview.transcript
+FROM person 
+JOIN interview  
+ON person.id = interview.person_id
+WHERE name = 'Jeremy Bowers'
+-- He was hired by a woman with a lot of money, is 5'5' (65") or 5'7" (67"), red hair, drives a Tesla Model S, 
+-- Attended the SQL Symphony Concert 3x in December 2017
+
+--Who hired Jeremy?
+SELECT p.name, dl.height, dl.hair_color, dl.car_make, dl.car_model, fb.event_name, fb.date
+FROM drivers_license dl
+JOIN person p
+ON p.license_id = dl.id
+JOIN facebook_event_checkin fb
+ON fb.person_id = p.id
+WHERE hair_color = 'red'
+AND car_make = 'Tesla'
+AND event_name = 'SQL Symphony Concert'
+-- Miranda Priestly hired Jeremy to commit the murder
+
+
